@@ -1,0 +1,17 @@
+#include <Wire.h>
+#include <TimerOne.h> // Timer1 documentation: https://www.pjrc.com/teensy/td_libs_TimerOne.html
+#include <Adafruit_LEDBackpack.h> // Search Arduino Library manager for "Adafruit LED Backpack Library“ for 7-segment 
+Adafruit_7segment matrix = Adafruit_7segment();
+unsigned int timerCount = 0; // global variable needed to increment by one
+void secondElapsed() {
+ timerCount++;
+ matrix.print(timerCount);
+}
+void setup() {
+ matrix.begin(0x70); // Creates a serial connection to 7-segment display with the address "0x70"
+ Timer1.initialize(1000000); // Initializes the timer to count every 1 000 000 microseconds i.e. one second
+ Timer1.attachInterrupt(secondElapsed); // Triggers interrupt every time timer counts
+}
+void loop() {
+ matrix.writeDisplay();
+}
