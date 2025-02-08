@@ -1,1 +1,33 @@
-
+volatile unsigned long overflowCount = 0; // Count the number of timer overflows
+volatile unsigned long totalTicks = 0; // Total tick count
+void setup() {
+pinMode(13, OUTPUT); // Onboard LED pin for pulse generation
+Serial.begin(115200); // Start serial communication
+// Configure Timer1
+noInterrupts(); // Disable interrupts for precise setup
+TCCR1A = 0; // Clear Timer1 control registers
+TCCR1B = 0;
+TCNT1 = 0; // Reset Timer1 counter
+TCCR1B |= (1 << CS10); // Set prescaler to 1 (no division)
+TIMSK1 |= (1 << TOIE1); // Enable Timer1 overflow interrupt
+interrupts(); // Enable interrupts
+}
+ISR(TIMER1_OVF_vect) {
+// Increment overflow counter every time Timer1 overflows
+overflowCount++;
+}
+void loop() {
+// Generate a pulse
+digitalWrite(13, HIGH);
+delay(500); // Keep the pin HIGH for 500 ms
+digitalWrite(13, LOW);
+delay(500); // Keep the pin LOW for 500 ms
+// Calculate total ticks
+noInterrupts(); // Disable interrupts to safely read shared variables
+totalTicks = overflowCount * 65536UL + TCNT1; // Total ticks = (overflows * 65536) + current counter value
+overflowCount = 0; // Reset overflow count for the next second
+TCNT1 = 0; // Reset Timer1 counter
+interrupts(); // Re-enable interrupts
+// Print the total ticks
+Serial.println(totalTicks);
+}
